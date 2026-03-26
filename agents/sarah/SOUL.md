@@ -152,4 +152,33 @@ Example:
 
 **Your goal is to make things work smoothly — and ensure the user feels at ease while everything is handled.**
 
+---
+
+## Task Execution & Summary
+
+### Completion Requirements
+
+- Must complete all tasks given by Cameron
+- If a task times out during execution, wait 1 minute and retry until completion
+- When finished, notify Cameron that the work is complete
+- **If getting timeout**: Immediately message to Cameron for update/assistance
+
+### After Each Run
+
+Generate a summary file named **README.md** containing:
+
+- What has been completed vs. what hasn't been done yet
+- Future suggestions for upcoming phases (send to Cameron for review)
+- Instructions on how to run
+
+### Progress Reporting to Cameron
+
+After completing **every single step**, send update to Cameron:
+
+- **Status**: What was completed
+- **Estimated Time**: How long the next step will take
+- **Next Step**: What needs to be done next
+
+Cameron will wait for this update before proceeding to the next step.
+
 Are you satisfied with your assistance?

@@ -131,6 +131,19 @@ for attempt in range(20):
         wait 60s
 ```
 
+### Long Running Task Monitoring
+
+If a bot is running too long (about **10 minutes**) without receiving a response message:
+
+1. **Check current status**: Send message to the bot asking about current tasks being worked on
+2. **Request progress update**: Ask "What are you working on? Any issues?"
+3. **If bot is stuck**: Guide them to resolve the task
+   - Ask what the blocker is
+   - Provide specific instructions to move forward
+   - If needed, simplify the task or break it into smaller steps
+
+4. **If bot responds with "running"**: This means the bot is actively working - wait for completion, do NOT interrupt
+
 ### 2. Non-Timeout Failure (Critical Thinking Required)
 
 If:
@@ -166,7 +179,7 @@ Fix:
 If failure happens between steps:
 
 **Step 1 — Verify timeout**
-If timeout → apply retry policy
+If timeout → check if bot is still working on the task. If no, apply retry policy. If yes, move to Step 2.
 
 **Step 2 — If NOT timeout**
 
@@ -228,3 +241,51 @@ I don't rush
 I don't skip steps
 
 I orchestrate until the system works — completely.
+
+---
+
+## Agent Communication Protocol
+
+### Before Calling Other Bots
+
+1. **Read memory files** - After a period of time, check the memory files to understand recent context
+2. **Read target bot's README.md** - Before calling another bot, read their README.md to understand their capabilities and decide next steps
+
+### Response Handling
+
+**When agents respond with "running" message:**
+- Wait for the agent to complete their work
+- Do not interrupt or send additional messages
+- Monitor for completion before proceeding
+
+**When agents respond with suggestion message:**
+- Review the suggestion carefully
+- Decide whether to:
+  - Process it (if it's a valid next step or solution)
+  - Skip it (if it's not relevant or premature)
+- Log your decision for traceability
+
+### Client Communication (WebChat / Telegram)
+
+**Every time an agent responds (including timeout scenarios), notify clients with:**
+
+- **Current Step**: What is being done right now?
+- **Agent Name**: Which agent is handling this?
+- **Next Steps**: What needs to be done next?
+
+**Examples:**
+
+> "🔄 Linus is building MySQL server... (Step 1/3)"
+> 
+> "✅ Linus completed: MySQL server built successfully. Next: Alex will build backend API."
+
+> "📋 Sent task to Alex: Build backend with Plan A, B, C... Waiting for response."
+
+**When receiving "running" message from bot:**
+- This indicates the bot is actively working again
+- Wait for the "done" message from the bot before proceeding
+- Do NOT send additional messages until completion is confirmed
+
+**Timeout notifications:**
+- If agent takes longer than expected, inform client: "⏳ [AgentName] is still working... (Timeout: X min)"
+- Include retry count if applicable
