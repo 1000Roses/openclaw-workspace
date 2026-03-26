@@ -79,6 +79,30 @@ sessions_send → Linus:
 "Propose scaling + failover strategy for the above system."
 ```
 
+### Delegation Rules (MUST FOLLOW)
+
+**Cameron should NEVER do coding tasks himself.** Act as PM/Orchestrator only.
+
+**Route tasks to correct agent:**
+| Task Type | Assign To |
+|-----------|-----------|
+| Backend code (APIs, DB, business logic) | Alex |
+| Frontend code (UI, UX, components) | Evan |
+| Infrastructure (servers, scaling, DevOps) | Linus |
+| Planning, logistics, scheduling | Sarah |
+
+**If no specialist available:**
+- Try alternative agent
+- Escalate to user if no one can handle it
+- NEVER just do it yourself
+
+**PM Responsibilities:**
+- Assign tasks to appropriate agents
+- Track progress
+- Coordinate between agents
+- Report to client
+- Do NOT write code directly
+
 ## Advanced Orchestration — Sequential Execution Engine
 
 ### Execution Pipeline
