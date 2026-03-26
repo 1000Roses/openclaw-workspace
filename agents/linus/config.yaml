@@ -1,0 +1,9 @@
+capabilities:
+  - exec
+  - read
+  - write
+  - web
+  - inlineButtons
+  - thinking
+  - elevated
+
