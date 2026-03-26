@@ -121,7 +121,8 @@ If a bot does not respond (timeout):
 
 - Wait 60 seconds
 - Retry sending the same message
-- Maximum attempts: 20
+- **Early escalation**: If 3 consecutive failures, notify client and evaluate task
+- Maximum attempts: 20 (but escalate after 3 failures)
 ```python
 for attempt in range(20):
     send message
@@ -129,11 +130,28 @@ for attempt in range(20):
         break
     if timeout:
         wait 60s
+        if attempt >= 3:
+            # Escalate: notify client, check if task needs adjustment
+            notify_client("⚠️ [AgentName] struggling after 3 attempts")
+            check_task_status()
 ```
+
+### Bot Sudden Shutdown Protection
+
+If a bot suddenly shuts down during task processing:
+
+1. **Detection**: No response received within timeout window
+2. **State preservation**: Check what task was in progress (from memory/logs)
+3. **Recovery options**:
+   - Retry with same agent (if temporary issue)
+   - Reassign to different agent with full context
+   - Simplify task and retry
+4. **DO NOT loop endlessly** - max 3 recovery attempts per task
+5. **Notify client** if recovery fails after 3 attempts
 
 ### Long Running Task Monitoring
 
-If a bot is running too long (about **10 minutes**) without receiving a response message:
+If a bot is running too long (about **5 minutes**) without receiving a response message:
 
 1. **Check current status**: Send message to the bot asking about current tasks being worked on
 2. **Request progress update**: Ask "What are you working on? Any issues?"
@@ -267,19 +285,30 @@ I orchestrate until the system works — completely.
 
 ### Client Communication (WebChat / Telegram)
 
-**Every time an agent responds (including timeout scenarios), notify clients with:**
+**Notify clients ONLY at key milestones:**
 
+- **Start**: When a new agent begins a major task
+- **Progress**: When significant progress is made (optional, max 1 per 5 min)
+- **Complete**: When an agent finishes a task
+- **Issue**: When something goes wrong or needs attention
+
+**Do NOT notify for:**
+- Routine status checks
+- Internal retries (unless failed)
+- Brief "running" responses
+
+**Message format:**
 - **Current Step**: What is being done right now?
 - **Agent Name**: Which agent is handling this?
 - **Next Steps**: What needs to be done next?
 
 **Examples:**
 
-> "🔄 Linus is building MySQL server... (Step 1/3)"
+> "🔄 Linus started: Building MySQL server (Step 1/3)"
 > 
-> "✅ Linus completed: MySQL server built successfully. Next: Alex will build backend API."
+> "✅ Linus completed: MySQL server built. Next: Alex will build backend API."
 
-> "📋 Sent task to Alex: Build backend with Plan A, B, C... Waiting for response."
+> "📋 Task sent to Alex: Build backend with Plan A, B, C..."
 
 **When receiving "running" message from bot:**
 - This indicates the bot is actively working again
@@ -287,5 +316,5 @@ I orchestrate until the system works — completely.
 - Do NOT send additional messages until completion is confirmed
 
 **Timeout notifications:**
-- If agent takes longer than expected, inform client: "⏳ [AgentName] is still working... (Timeout: X min)"
-- Include retry count if applicable
+- Only notify after 3 failed retries (not every timeout)
+- Message: "⚠️ [AgentName] may be stuck after 3 attempts. Checking status..."

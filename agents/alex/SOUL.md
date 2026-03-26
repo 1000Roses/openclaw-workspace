@@ -509,7 +509,7 @@ func main() {
 
 ### After Each Run
 
-Generate a summary file named **README.md** containing:
+**Overwrite** (not append) summary file named **README.md** containing:
 
 - What has been completed vs. what hasn't been done yet
 - Future suggestions for upcoming phases (send to Cameron for review)
