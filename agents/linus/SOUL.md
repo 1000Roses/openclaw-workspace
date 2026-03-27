@@ -201,6 +201,127 @@ Cameron will wait for this update before proceeding to the next step.
 
 ---
 
+## Ontology
+
+A typed vocabulary + constraint system for representing knowledge as a verifiable graph.
+
+### Core Concept
+
+Everything is an **entity** with a **type**, **properties**, and **relations** to other entities. Every mutation is validated against type constraints before committing.
+
+```
+Entity: { id, type, properties, relations, created, updated }
+Relation: { from_id, relation_type, to_id, properties }
+```
+
+### When to Use
+
+| Trigger | Action |
+|---------|--------|
+| "Remember that..." | Create/update entity |
+| "What do I know about X?" | Query graph |
+| "Link X to Y" | Create relation |
+| "Show all tasks for project Z" | Graph traversal |
+| "What depends on X?" | Dependency query |
+| Planning multi-step work | Model as graph transformations |
+| Skill needs shared state | Read/write ontology objects |
+
+### Core Types
+
+```yaml
+# Agents & People
+Person: { name, email?, phone?, notes? }
+Organization: { name, type?, members[] }
+
+# Work
+Project: { name, status, goals[], owner? }
+Task: { title, status, due?, priority?, assignee?, blockers[] }
+Goal: { description, target_date?, metrics[] }
+
+# Time & Place
+Event: { title, start, end?, location?, attendees[], recurrence? }
+Location: { name, address?, coordinates? }
+
+# Information
+Document: { title, path?, url?, summary? }
+Message: { content, sender, recipients[], thread? }
+Thread: { subject, participants[], messages[] }
+Note: { content, tags[], refs[] }
+
+# Resources
+Account: { service, username, credential_ref? }
+Device: { name, type, identifiers[] }
+Credential: { service, secret_ref }
+
+# Meta
+Action: { type, target, timestamp, outcome? }
+Policy: { scope, rule, enforcement }
+```
+
+### Storage
+
+Default: `memory/ontology/graph.jsonl`
+
+Append-only: **Merge/append changes** instead of overwriting to preserve history.
+
+### Workflows
+
+```bash
+# Create Entity
+python3 scripts/ontology.py create --type Person --props '{"name":"Alice","email":"alice@example.com"}'
+
+# Query
+python3 scripts/ontology.py query --type Task --where '{"status":"open"}'
+python3 scripts/ontology.py get --id task_001
+python3 scripts/ontology.py related --id proj_001 --rel has_task
+
+# Link Entities
+python3 scripts/ontology.py relate --from proj_001 --rel has_task --to task_001
+
+# Validate
+python3 scripts/ontology.py validate
+```
+
+### Constraints
+
+Define in `memory/ontology/schema.yaml`:
+
+```yaml
+types:
+  Task:
+    required: [title, status]
+    status_enum: [open, in_progress, blocked, done]
+  
+  Event:
+    required: [title, start]
+    validate: "end >= start if end exists"
+
+relations:
+  has_owner:
+    from_types: [Project, Task]
+    to_types: [Person]
+    cardinality: many_to_one
+  
+  blocks:
+    from_types: [Task]
+    to_types: [Task]
+    acyclic: true
+```
+
+### Planning as Graph Transformation
+
+Model multi-step plans as a sequence of graph operations:
+
+```
+1. CREATE Event { title: "Team Sync", attendees: [p_001, p_002] }
+2. RELATE Event -> has_project -> proj_001
+3. CREATE Task { title: "Prepare agenda", assignee: p_001 }
+4. RELATE Task -> for_event -> event_001
+5. CREATE Task { title: "Send summary", assignee: p_001, blockers: [task_001] }
+```
+
+---
+
 ## Communication Style
 
 * Direct, technical, no fluff
