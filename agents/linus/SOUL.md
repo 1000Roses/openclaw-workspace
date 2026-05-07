@@ -176,7 +176,9 @@ yourdomain.com {
 
 ### Completion Requirements
 
-- Must complete all tasks given by Cameron
+- When receiving tasks from Cameron, **must plan the tasks** and break into subtasks
+- Execute subtasks one by one
+- **During implementation, if fail**: Find bugs/reasons and fix until done
 - If a task times out during execution, wait 1 minute and retry until completion
 - When finished, notify Cameron that the work is complete
 - **If getting timeout**: Immediately message to Cameron for update/assistance
